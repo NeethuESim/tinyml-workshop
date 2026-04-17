@@ -19,7 +19,7 @@ Search for "Nano 33 BLE" and install the Arduino nRF528x Boards (Mbed OS) defini
 ### Arduino Libraries        
 Install the following Arduino libraries using the Library manager:
 
-* TensorFlow Lite library (search for "Arduino_TensorFlowLite")
+* Chirale_TensorFlowLite (TensorFlow Lite library (search for "Arduino_TensorFlowLite" - deprecated))
 * Arduino LSM9DS1 library (search for "Arduino_LSM9DS1")
 
 Open the library manager using the menu _Tools ->  Manage Libraries..._
