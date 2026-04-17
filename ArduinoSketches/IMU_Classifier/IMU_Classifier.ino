@@ -14,18 +14,20 @@
 
   Created by Don Coleman, Sandeep Mistry
   Modified by Dominic Pajak, Sandeep Mistry
+  Modified by Neethu Elizabeth Simon
 
   This example code is in the public domain.
 */
 
 #include <Arduino_LSM9DS1.h>
 
-#include <TensorFlowLite.h>
-#include <tensorflow/lite/experimental/micro/kernels/all_ops_resolver.h>
-#include <tensorflow/lite/experimental/micro/micro_error_reporter.h>
-#include <tensorflow/lite/experimental/micro/micro_interpreter.h>
+//Replaced Arduino_TensorFlowLite library with Chirale_TensorFlowLite
+#include <Chirale_TensorFlowLite.h>
+#include <tensorflow/lite/micro/all_ops_resolver.h>
+#include <tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h>
+#include <tensorflow/lite/micro/micro_interpreter.h>
 #include <tensorflow/lite/schema/schema_generated.h>
-#include <tensorflow/lite/version.h>
+//#include <tensorflow/lite/version.h>
 
 #include "model.h"
 
@@ -43,7 +45,7 @@ tflite::MicroErrorReporter tflErrorReporter;
 // pull in all the TFLM ops, you can remove this line and
 // only pull in the TFLM ops you need, if would like to reduce
 // the compiled size of the sketch.
-tflite::ops::micro::AllOpsResolver tflOpsResolver;
+static tflite::AllOpsResolver tflOpsResolver;
 
 const tflite::Model* tflModel = nullptr;
 tflite::MicroInterpreter* tflInterpreter = nullptr;
@@ -59,6 +61,12 @@ byte tensorArena[tensorArenaSize];
 const char* GESTURES[] = {
   "punch",
   "flex"
+};
+
+// array to map gesture to an emoji
+const char* EMOJIS[] = {
+    u8"\U0001f44a",   // punch
+    u8"\U0001f4aa"    // flex 
 };
 
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
@@ -90,8 +98,10 @@ void setup() {
     while (1);
   }
 
-  // Create an interpreter to run the model
-  tflInterpreter = new tflite::MicroInterpreter(tflModel, tflOpsResolver, tensorArena, tensorArenaSize, &tflErrorReporter);
+  // Build an interpreter to run the model with.
+  static tflite::MicroInterpreter static_interpreter(
+      tflModel, tflOpsResolver, tensorArena, tensorArenaSize);
+  tflInterpreter = &static_interpreter;
 
   // Allocate memory for the model's input and output tensors
   tflInterpreter->AllocateTensors();
@@ -170,6 +180,11 @@ void loop() {
     Serial.print(GESTURES[i]);
     Serial.print(": ");
     Serial.println(tflOutputTensor->data.f[i], 6);
+
+    if (tflOutputTensor->data.f[i] > 0.8) {
+        Serial.println(EMOJIS[i]);
+        Serial.println();
+    }
   }
   Serial.println();
 }
